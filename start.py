@@ -14,7 +14,7 @@ path = os.path.dirname(os.path.abspath(sys.argv[0])).replace("/", "\\")
 config = json.load(open('{}/config.json'.format(path), 'r'))
 wallet_address = config['WalletAdress']
 pool_domain = config['PoolDomain']
-miner_name = config['MinerName']
+worker_name = config['WorkerName']
 email = config['E-Mail']
 uuid = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
 
@@ -23,7 +23,7 @@ def run_miner():
 
     # file_path = os.path.realpath('./') + '\\'
     order = "{}/t-rex.exe -a ethash -o stratum+tcp://{} -u {} -p x -w {}\npause".format(
-        path, pool_domain, wallet_address, miner_name)
+        path, pool_domain, wallet_address, worker_name)
     p = subprocess.run(order, shell=True, check=True)
 
 
@@ -37,9 +37,9 @@ while True:
         data = json.loads(response.read())
         param = {
             'email': email,
-            'wallet_id': wallet_address,
+            'wallet_id': wallet_address, # 필요 X
             'uuid': uuid,
-            'miner_nm': miner_name,
+            'worker_name': worker_name,
             'data': data
         }
         param = json.dumps(param)
