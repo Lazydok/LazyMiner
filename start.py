@@ -34,34 +34,43 @@ try:
 
     while True:
         try:
+            time.sleep(60)
             url = "http://127.0.0.1:4067/summary"
             response = urllib.request.urlopen(url)
-            data = json.loads(response.read())
+            status = json.loads(response.read())
             param = {
                 'email': email,
                 'uuid': uuid,
-                'worker_name': worker_name,
-                'data': data
+                'worker_nm': worker_name,
+                'data': status
             }
 
             param = json.dumps(param)
-            res = requests.request('POST', url='http://jikding.net/api/lazy-miner/log', data=param)
+            res = requests.request('POST', url='http://stick.coffee:8288/api/lazy-miner/log', data=param)
             data = json.loads((res.text).encode('utf-8'))
-            print(data)
-            if data['status'] == 'tryReboot':
+            turnoff_flag = False
+            if data['message']['status'] == 'tryReboot':
+                turnoff_flag = True
+            elif data['setting']['auto_turnoff']:
+                lm_rate = data['setting']['turnoff_limit_rate']
+                rate = status['hashrate'] / status['hashrate_day'] * 100
+                if lm_rate > rate:
+                    turnoff_flag = True
+
+            if turnoff_flag:
                 param = {
                     'uuid': uuid,
                     'farm': farm_hash
                 }
 
                 param = json.dumps(param)
-                res = requests.request('POST', url='http://jikding.net/api/lazy-miner/worker/turnoff-ok', data=param)
+                res = requests.request('POST', url='http://stick.coffee:8288/api/lazy-miner/worker/turnoff-ok', data=param)
                 data = json.loads((res.text).encode('utf-8'))
                 print(data)
                 os.system("shutdown -t 0 -r -f")
-            time.sleep(60)
-        except:
-            time.sleep(60)
+        except Exception as e:
+            print(e)
+            pass
 
 except Exception as e:
     print(e)
