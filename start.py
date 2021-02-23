@@ -17,8 +17,8 @@ try:
     pool_domain = config['PoolDomain']
     worker_name = config['WorkerName']
     farm_hash = config['Farm']
-    email = config['E-Mail']
     uuid = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
+    base_api_addr = "http://jikding.net/api2/lazy-miner"
 
 
     def run_miner():
@@ -39,23 +39,25 @@ try:
             response = urllib.request.urlopen(url)
             status = json.loads(response.read())
             param = {
-                'email': email,
+                'farm': farm_hash,
                 'uuid': uuid,
                 'worker_nm': worker_name,
                 'data': status
             }
-
             param = json.dumps(param)
-            res = requests.request('POST', url='http://stick.coffee:8288/api/lazy-miner/log', data=param)
+            res = requests.request('POST', url='{}/log'.format(base_api_addr), data=param)
             data = json.loads((res.text).encode('utf-8'))
             turnoff_flag = False
-            if data['message']['status'] == 'tryReboot':
-                turnoff_flag = True
-            elif data['setting']['auto_turnoff']:
-                lm_rate = data['setting']['turnoff_limit_rate']
-                rate = status['hashrate'] / status['hashrate_day'] * 100
-                if lm_rate > rate:
+            try:
+                if data['status'] == 'tryReboot':
                     turnoff_flag = True
+                elif data['setting']['auto_turnoff']:
+                    lm_rate = data['setting']['turnoff_limit_rate']
+                    rate = status['hashrate'] / status['hashrate_day'] * 100
+                    if lm_rate > rate:
+                        turnoff_flag = True
+            except:
+                pass
 
             if turnoff_flag:
                 param = {
@@ -64,9 +66,8 @@ try:
                 }
 
                 param = json.dumps(param)
-                res = requests.request('POST', url='http://stick.coffee:8288/api/lazy-miner/worker/turnoff-ok', data=param)
+                res = requests.request('POST', url='{}/worker/turnoff-ok'.format(base_api_addr), data=param)
                 data = json.loads((res.text).encode('utf-8'))
-                print(data)
                 os.system("shutdown -t 0 -r -f")
         except Exception as e:
             print(e)

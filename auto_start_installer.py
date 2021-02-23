@@ -61,10 +61,10 @@ for val in reg_val_list:
                 print('reg DefaultPassword err!', e)
 
 if not find_reg1:
-    winreg.SetValueEx(key_w, 'AutoAdminLogon', 0, '1')
+    winreg.SetValueEx(key_w, 'AutoAdminLogon', 0, winreg.REG_SZ, '1')
     print('reg create AutoAdminLogon!')
 if not find_reg2:
-    winreg.SetValueEx(key_w, 'DefaultUserName', 0, user_name)
+    winreg.SetValueEx(key_w, 'DefaultUserName', 0, winreg.REG_SZ, user_name)
     print('reg create DefaultUserName!')
 if not find_reg3:
     winreg.SetValueEx(key_w, 'DefaultPassword', 0, winreg.REG_SZ, config['WindowsPassword'])
